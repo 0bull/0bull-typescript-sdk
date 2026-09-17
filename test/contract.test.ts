@@ -153,50 +153,73 @@ function missingKeys(keys: readonly string[], schemas: readonly SpecSchema[]): s
 
 // --- operations under test ---------------------------------------------------
 
-/** A Transport that records the REST request instead of sending it. */
-function recording() {
+/** A Transport that records the REST request instead of sending it. `reply` is what
+ * `execute` resolves with; composite helpers like `wait` need a terminal reply so
+ * they finish after one recorded call. */
+function recording(
+  reply: unknown = {
+    items: [],
+    current_page: 1,
+    last_page: 1,
+    per_page: 50,
+    total: 0,
+  },
+) {
   const calls: RestRequest[] = [];
   const transport: Transport = {
     supportsRest: true,
     execute<T>(operation: Operation<T>): Promise<T> {
       if (!operation.rest) throw new Error("contract test records REST operations only");
       calls.push(operation.rest);
-      return Promise.resolve({
-        items: [],
-        current_page: 1,
-        last_page: 1,
-        per_page: 50,
-        total: 0,
-      } as unknown as T);
+      return Promise.resolve(reply as T);
     },
   };
   const http = new HttpTransport({ apiToken: "contract" });
   return {
     calls,
+    transport,
+    http,
     accounts: new Accounts(transport, http),
+    billing: new Billing(transport, http),
+    phones: new Phones(transport, http),
+    runs: new Runs(transport, http),
     user: new UserResource(transport, http),
     session: new SessionResource(transport, http),
+    submissions: new Submissions(transport, http),
+    uploads: new Uploads(transport, http),
   };
 }
 
 interface Case {
   name: string;
+  /** The `area.method` this case covers; the coverage test counts these. */
+  method: string;
+  reply?: unknown;
   run: (resources: ReturnType<typeof recording>) => Promise<unknown>;
 }
 
 const ACCOUNT_ID = "11111111-1111-1111-1111-111111111111";
+const RUN_ID = "22222222-2222-2222-2222-222222222222";
+const BILLING_REQUEST_ID = "33333333-3333-3333-3333-333333333333";
+const SLOT = "slot-1";
 
 // One representative call per implemented resource method, with valid sample args.
 const CASES: Case[] = [
-  { name: "accounts.list", run: (r) => r.accounts.list({ page: 1, platform: "tiktok" }) },
-  { name: "accounts.get", run: (r) => r.accounts.get(ACCOUNT_ID) },
+  {
+    name: "accounts.list",
+    method: "accounts.list",
+    run: (r) => r.accounts.list({ page: 1, platform: "tiktok" }),
+  },
+  { name: "accounts.get", method: "accounts.get", run: (r) => r.accounts.get(ACCOUNT_ID) },
   {
     name: "accounts.create",
+    method: "accounts.create",
     run: (r) =>
       r.accounts.create({ handle: "@me", platform: "tiktok", slot: "slot-1", notes: "note" }),
   },
   {
     name: "accounts.update",
+    method: "accounts.update",
     run: (r) =>
       r.accounts.update(ACCOUNT_ID, {
         handle: "@new",
@@ -205,13 +228,160 @@ const CASES: Case[] = [
         google_email: null,
       }),
   },
-  { name: "accounts.delete", run: (r) => r.accounts.delete(ACCOUNT_ID) },
-  { name: "user.get", run: (r) => r.user.get() },
-  { name: "session.create", run: (r) => r.session.create() },
+  {
+    name: "accounts.delete",
+    method: "accounts.delete",
+    run: (r) => r.accounts.delete(ACCOUNT_ID),
+  },
+  { name: "billing.summary", method: "billing.summary", run: (r) => r.billing.summary() },
+  {
+    name: "billing.startRental with phones",
+    method: "billing.startRental",
+    run: (r) => r.billing.startRental({ accept_terms: true, phones: 5, country: "US" }),
+  },
+  {
+    name: "billing.startRental with items",
+    method: "billing.startRental",
+    run: (r) =>
+      r.billing.startRental({ accept_terms: true, items: [{ country: "US", quantity: 2 }] }),
+  },
+  {
+    name: "billing.requestPhoneCount with phones",
+    method: "billing.requestPhoneCount",
+    run: (r) => r.billing.requestPhoneCount({ accept_terms: true, phones: 5 }),
+  },
+  {
+    name: "billing.requestPhoneCount with add",
+    method: "billing.requestPhoneCount",
+    run: (r) => r.billing.requestPhoneCount({ accept_terms: true, add: 2 }),
+  },
+  {
+    name: "billing.getRequest",
+    method: "billing.getRequest",
+    run: (r) => r.billing.getRequest(BILLING_REQUEST_ID),
+  },
+  { name: "phones.list", method: "phones.list", run: (r) => r.phones.list() },
+  {
+    name: "phones.snapshot",
+    method: "phones.snapshot",
+    run: (r) => r.phones.snapshot(SLOT, { width: 600 }),
+  },
+  { name: "phones.ocr", method: "phones.ocr", run: (r) => r.phones.ocr(SLOT, { width: 600 }) },
+  {
+    name: "phones.tap",
+    method: "phones.tap",
+    run: (r) => r.phones.tap(SLOT, { fx: 0.5, fy: 0.5 }),
+  },
+  {
+    name: "phones.swipe",
+    method: "phones.swipe",
+    run: (r) => r.phones.swipe(SLOT, { fx1: 0.1, fy1: 0.1, fx2: 0.9, fy2: 0.9, steps: 10 }),
+  },
+  {
+    name: "phones.hotkey",
+    method: "phones.hotkey",
+    run: (r) => r.phones.hotkey(SLOT, "home"),
+  },
+  {
+    name: "phones.type",
+    method: "phones.type",
+    run: (r) => r.phones.type(SLOT, "hello"),
+  },
+  {
+    name: "phones.runCommand",
+    method: "phones.runCommand",
+    run: (r) => r.phones.runCommand(SLOT, "brightness", { level: 0.5 }),
+  },
+  {
+    name: "phones.runMacro",
+    method: "phones.runMacro",
+    run: (r) => r.phones.runMacro(SLOT, { workflow: "post-to-story", params: { caption: "hi" } }),
+  },
+  {
+    name: "phones.runAgent",
+    method: "phones.runAgent",
+    run: (r) => r.phones.runAgent(SLOT, "open settings"),
+  },
+  {
+    name: "runs.list",
+    method: "runs.list",
+    run: (r) => r.runs.list(SLOT, { page: 1 }),
+  },
+  { name: "runs.get", method: "runs.get", run: (r) => r.runs.get(SLOT, RUN_ID) },
+  {
+    name: "runs.wait",
+    method: "runs.wait",
+    reply: { id: RUN_ID, slot: SLOT, status: "succeeded" },
+    run: (r) => r.runs.wait({ slot: SLOT, id: RUN_ID } as Run, { timeout: 1000, interval: 1 }),
+  },
+  { name: "user.get", method: "user.get", run: (r) => r.user.get() },
+  { name: "session.create", method: "session.create", run: (r) => r.session.create() },
+  {
+    name: "submissions.list",
+    method: "submissions.list",
+    run: (r) => r.submissions.list({ page: 1, platform: "tiktok" }),
+  },
+  {
+    name: "submissions.get",
+    method: "submissions.get",
+    run: (r) => r.submissions.get(123),
+  },
+  {
+    name: "submissions.create with video",
+    method: "submissions.create",
+    run: (r) =>
+      r.submissions.create({
+        account_id: ACCOUNT_ID,
+        video: new Uint8Array([1]),
+        caption: "hi",
+        draft: false,
+      }),
+  },
+  {
+    name: "submissions.create with video_url",
+    method: "submissions.create",
+    run: (r) =>
+      r.submissions.create({
+        account_id: ACCOUNT_ID,
+        platform: "tiktok",
+        video_url: "https://example.com/video.mp4",
+      }),
+  },
+  {
+    name: "submissions.create with upload_id",
+    method: "submissions.create",
+    run: (r) => r.submissions.create({ account_id: ACCOUNT_ID, upload_id: "upload-1" }),
+  },
+  {
+    name: "submissions.cancel",
+    method: "submissions.cancel",
+    run: (r) => r.submissions.cancel(123),
+  },
+  {
+    name: "submissions.delete",
+    method: "submissions.delete",
+    run: (r) => r.submissions.delete(123),
+  },
+  {
+    name: "submissions.wait",
+    method: "submissions.wait",
+    reply: { id: 123, status: "published" },
+    run: (r) => r.submissions.wait(123, { timeout: 1000, interval: 1 }),
+  },
+  { name: "uploads.create", method: "uploads.create", run: (r) => r.uploads.create() },
+  {
+    name: "uploads.upload",
+    method: "uploads.upload",
+    // The second step posts bytes to the signed URL, outside the API contract.
+    run: (r) =>
+      new Uploads(r.transport, {
+        upload: async () => undefined,
+      } as unknown as HttpTransport).upload(new Uint8Array([1])),
+  },
 ];
 
 async function recordedRest(kase: Case): Promise<RestRequest> {
-  const resources = recording();
+  const resources = recording(kase.reply);
   await kase.run(resources);
   expect(resources.calls).toHaveLength(1);
   const rest = resources.calls[0];
@@ -390,11 +560,25 @@ const MODELS: Model[] = [
     shape: "wrapped",
   },
   {
+    label: "Run (page)",
+    keys: runKeys,
+    method: "GET",
+    path: "/v1/phones/{slot}/runs",
+    shape: "list",
+  },
+  {
     label: "Submission",
     keys: submissionKeys,
     method: "GET",
     path: "/v1/submissions/{submission}",
     shape: "wrapped",
+  },
+  {
+    label: "Submission (page)",
+    keys: submissionKeys,
+    method: "GET",
+    path: "/v1/submissions",
+    shape: "list",
   },
   {
     label: "SubmissionFailure",
@@ -490,7 +674,7 @@ describe("contract", () => {
         if (name !== "constructor" && !name.startsWith("_")) actual.add(`${area}.${name}`);
       }
     }
-    const covered = new Set(CASES.map((kase) => kase.name));
+    const covered = new Set(CASES.map((kase) => kase.method));
     const uncovered = [...actual].filter((name) => !covered.has(name));
     expect(uncovered, `add a contract case for: ${uncovered.join(", ")}`).toEqual([]);
     const stale = [...covered].filter((name) => !actual.has(name));
@@ -530,49 +714,5 @@ describe("contract", () => {
       { type: "object", properties: { id: { type: "string" }, platform: { type: "string" } } },
     ];
     expect(missingKeys(["id", "platfrom"], schemas)).toEqual(["platfrom"]);
-  });
-});
-
-// Stub resources (billing, phones, runs, submissions, uploads) have no methods yet.
-// Add a contract case per method here as each one lands; the coverage test above
-// fails until every new method has a case, so nothing is silently skipped.
-describe("not yet implemented", () => {
-  describe("billing", () => {
-    it.todo("summary: add a case driving Billing.summary (GET /v1/billing)");
-    it.todo("startRental: add a case driving Billing.startRental (POST /v1/billing/rentals)");
-    it.todo(
-      "requestPhoneCount: add a case driving Billing.requestPhoneCount (POST /v1/billing/requests)",
-    );
-    it.todo(
-      "getRequest: add a case driving Billing.getRequest (GET /v1/billing/requests/{billingRequest})",
-    );
-  });
-  describe("phones", () => {
-    it.todo("list: add a case driving Phones.list (GET /v1/phones)");
-    it.todo("snapshot: add a case driving Phones.snapshot (GET /v1/phones/{slot}/snapshot)");
-    it.todo("ocr: add a case driving Phones.ocr (GET /v1/phones/{slot}/ocr)");
-    it.todo("tap: add a case driving Phones.tap (POST /v1/phones/{slot}/input)");
-    it.todo("swipe: add a case driving Phones.swipe (POST /v1/phones/{slot}/input)");
-    it.todo("hotkey: add a case driving Phones.hotkey (POST /v1/phones/{slot}/input)");
-    it.todo("type: add a case driving Phones.type (POST /v1/phones/{slot}/input)");
-    it.todo("runCommand: add a case driving Phones.runCommand (POST /v1/phones/{slot}/commands)");
-    it.todo("runMacro: add a case driving Phones.runMacro (POST /v1/phones/{slot}/macros)");
-    it.todo("runAgent: add a case driving Phones.runAgent (POST /v1/phones/{slot}/agent-runs)");
-  });
-  describe("runs", () => {
-    it.todo("list: add a case driving Runs.list (GET /v1/phones/{slot}/runs)");
-    it.todo("get: add a case driving Runs.get (GET /v1/phones/{slot}/runs/{run})");
-  });
-  describe("submissions", () => {
-    it.todo("list: add a case driving Submissions.list (GET /v1/submissions)");
-    it.todo("get: add a case driving Submissions.get (GET /v1/submissions/{submission})");
-    it.todo("create: add a case driving Submissions.create (POST /v1/submissions, multipart)");
-    it.todo(
-      "cancel: add a case driving Submissions.cancel (POST /v1/submissions/{submission}/cancel)",
-    );
-    it.todo("delete: add a case driving Submissions.delete (DELETE /v1/submissions/{submission})");
-  });
-  describe("uploads", () => {
-    it.todo("create: add a case driving Uploads.create (POST /v1/uploads)");
   });
 });
