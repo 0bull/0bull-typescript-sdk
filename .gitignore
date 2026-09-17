@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+.env
+.env.*
+
+# Local working files
+SPEC.md
+SPEC-*.md
+tasks/
