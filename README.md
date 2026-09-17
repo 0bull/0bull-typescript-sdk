@@ -77,8 +77,8 @@ const text: string = await client.phones.ocr(slot);
 
 await client.phones.tap(slot, { fx: 0.5, fy: 0.9 });
 await client.phones.swipe(slot, { fx1: 0.5, fy1: 0.8, fx2: 0.5, fy2: 0.2, steps: 30 });
-await client.phones.hotkey(slot, "home");
 await client.phones.type(slot, "hello");
+await client.phones.hotkey(slot, "enter");
 ```
 
 Commands, macros, and agent tasks all queue a `Run`:

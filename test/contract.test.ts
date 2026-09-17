@@ -44,12 +44,14 @@ import type {
   UploadURL,
   User,
 } from "../src/types.js";
+import { HOTKEYS } from "../src/types.js";
 
 interface SpecSchema {
   type?: string | string[];
   properties?: Record<string, SpecSchema>;
   items?: SpecSchema;
   required?: string[];
+  enum?: unknown[];
 }
 
 interface SpecParameter {
@@ -65,6 +67,7 @@ interface SpecOperation {
 
 interface Spec {
   paths: Record<string, Record<string, SpecOperation>>;
+  components: { schemas: Record<string, SpecSchema> };
 }
 
 const SPEC: Spec = JSON.parse(
@@ -708,6 +711,11 @@ describe("contract", () => {
       expect(missing, `${model.label} fields missing from the spec`).toEqual([]);
     });
   }
+
+  it("tracks the spec's hotkey enum exactly", () => {
+    const key = SPEC.components.schemas.PhoneInputRequest?.properties?.key;
+    expect(new Set(HOTKEYS)).toEqual(new Set(key?.enum));
+  });
 
   it("flags an interface field the spec does not document", () => {
     const schemas: SpecSchema[] = [

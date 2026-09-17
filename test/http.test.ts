@@ -4,6 +4,7 @@ import {
   APITimeoutError,
   RateLimitError,
   ValidationError,
+  VERSION,
   ZeroBull,
   ZeroBullError,
 } from "../src/index.js";
@@ -23,7 +24,7 @@ describe("HttpTransport", () => {
     expect(request.url).toBe("https://api.test/user");
     expect(request.headers.get("authorization")).toBe("Bearer test");
     expect(request.headers.get("accept")).toBe("application/json");
-    expect(request.headers.get("user-agent")).toMatch(/^0bull-typescript\//);
+    expect(request.headers.get("user-agent")).toBe(`0bull-typescript/${VERSION}`);
   });
 
   it("requires a token and reads config from the environment", () => {

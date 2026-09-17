@@ -21,13 +21,21 @@ export interface Account {
   updated_at: string | null;
 }
 
-export type Hotkey =
-  | "home"
-  | "app_switcher"
-  | "control_center"
-  | "notifications"
-  | "paste"
-  | "run_shortcut";
+export const HOTKEYS = [
+  "home",
+  "app_switcher",
+  "control_center",
+  "notifications",
+  "back",
+  "run_shortcut",
+  "enter",
+  "backspace",
+  "copy",
+  "cut",
+  "paste",
+  "select_all",
+] as const;
+export type Hotkey = (typeof HOTKEYS)[number];
 
 export type CommandOp =
   | "clipboard_set"

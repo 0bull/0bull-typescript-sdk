@@ -7,7 +7,14 @@ import {
   requireRange,
   unwrap,
 } from "../core.js";
-import type { CommandOp, Hotkey, MacroParams, Phone, Run } from "../types.js";
+import {
+  type CommandOp,
+  HOTKEYS,
+  type Hotkey,
+  type MacroParams,
+  type Phone,
+  type Run,
+} from "../types.js";
 import { Resource } from "./resource.js";
 import { parseRun } from "./runs.js";
 
@@ -55,15 +62,6 @@ export interface RunMacroParams {
   /** At most 200 entries; each requires a string `action`. */
   steps?: Record<string, unknown>[];
 }
-
-const HOTKEYS: readonly Hotkey[] = [
-  "home",
-  "app_switcher",
-  "control_center",
-  "notifications",
-  "paste",
-  "run_shortcut",
-];
 
 const COMMAND_OPS: readonly CommandOp[] = [
   "clipboard_set",

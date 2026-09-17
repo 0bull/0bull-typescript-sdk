@@ -16,7 +16,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Submissions: list, get, create (local file, `video_url`, or `upload_id`), cancel, delete, and
   `wait()`. Over the WebSocket, a local file is uploaded through a signed URL first.
 - Uploads: signed upload URLs via `uploads.create()` and `uploads.upload()`.
-- Phones: list, snapshot, OCR, tap, swipe, hotkey, type.
+- Phones: list, snapshot, OCR, tap, swipe, hotkey, type. `hotkey` accepts every documented key
+  (`HOTKEYS`), including `enter`, `backspace`, `back`, `copy`, `cut`, `paste`, and `select_all`.
 - Phone runs: commands, macros, agent runs; list, get, and `wait()`.
 - Billing: summary, rentals, phone count requests, and billing request lookup.
 - Phone-controller sessions and `client.socket()`, with concurrent calls and automatic reconnects.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { HttpTransport } from "../src/http.js";
 import { Phones } from "../src/resources/phones.js";
-import type { CommandOp } from "../src/types.js";
+import { type CommandOp, HOTKEYS } from "../src/types.js";
 import { fakeSocketTransport, mockApi } from "./helpers.js";
 
 const phone = {
@@ -92,8 +92,10 @@ describe("phones over REST", () => {
     });
 
     api.add("POST", "/v1/phones/phone-1/input", { json: { op: "hotkey" } });
-    await api.client.phones.hotkey("phone-1", "home");
-    expect(await api.last().json()).toEqual({ op: "hotkey", key: "home" });
+    for (const key of HOTKEYS) {
+      await api.client.phones.hotkey("phone-1", key);
+      expect(await api.last().json()).toEqual({ op: "hotkey", key });
+    }
 
     api.add("POST", "/v1/phones/phone-1/input", { json: { op: "type" } });
     await api.client.phones.type("phone-1", "hello");

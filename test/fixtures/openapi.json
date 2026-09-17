@@ -2717,7 +2717,7 @@
                             "object",
                             "null"
                           ],
-                          "description": "What the run produced, when it succeeded. Shape depends on `kind`.",
+                          "description": "What the run produced, when it succeeded. Shape depends on `kind`.\nA `get_ip` or `clipboard_get` command returns `{\"value\": \"...\"}`.",
                           "additionalProperties": {}
                         },
                         "error": {
@@ -2899,7 +2899,7 @@
     "/v1/phones/{slot}/commands": {
       "post": {
         "operationId": "phoneCommand.store",
-        "description": "Queues a single device command, such as reboot or brightness, and\nreturns a run record. Poll `GET /v1/phones/{slot}/runs/{run}` for the\nresult.",
+        "description": "Sends a single device command, such as reboot or brightness, and\nreturns a running run record. The run succeeds once the phone has run\nthe command. For `get_ip` and `clipboard_get`, `result.value` holds the\nvalue the phone reported. Poll `GET /v1/phones/{slot}/runs/{run}`\nfor the outcome.",
         "summary": "Queue a phone command",
         "tags": [
           "PhoneCommand"
@@ -3024,7 +3024,7 @@
                             "object",
                             "null"
                           ],
-                          "description": "What the run produced, when it succeeded. Shape depends on `kind`.",
+                          "description": "What the run produced, when it succeeded. Shape depends on `kind`.\nA `get_ip` or `clipboard_get` command returns `{\"value\": \"...\"}`.",
                           "additionalProperties": {}
                         },
                         "error": {
@@ -3284,8 +3284,14 @@
                       "app_switcher",
                       "control_center",
                       "notifications",
+                      "back",
+                      "run_shortcut",
+                      "enter",
+                      "backspace",
+                      "copy",
+                      "cut",
                       "paste",
-                      "run_shortcut"
+                      "select_all"
                     ]
                   },
                   "text": {
@@ -3563,7 +3569,7 @@
                             "object",
                             "null"
                           ],
-                          "description": "What the run produced, when it succeeded. Shape depends on `kind`.",
+                          "description": "What the run produced, when it succeeded. Shape depends on `kind`.\nA `get_ip` or `clipboard_get` command returns `{\"value\": \"...\"}`.",
                           "additionalProperties": {}
                         },
                         "error": {
@@ -3787,7 +3793,7 @@
                               "object",
                               "null"
                             ],
-                            "description": "What the run produced, when it succeeded. Shape depends on `kind`.",
+                            "description": "What the run produced, when it succeeded. Shape depends on `kind`.\nA `get_ip` or `clipboard_get` command returns `{\"value\": \"...\"}`.",
                             "additionalProperties": {}
                           },
                           "error": {
@@ -4125,7 +4131,7 @@
                             "object",
                             "null"
                           ],
-                          "description": "What the run produced, when it succeeded. Shape depends on `kind`.",
+                          "description": "What the run produced, when it succeeded. Shape depends on `kind`.\nA `get_ip` or `clipboard_get` command returns `{\"value\": \"...\"}`.",
                           "additionalProperties": {}
                         },
                         "error": {
@@ -6416,8 +6422,14 @@
               "app_switcher",
               "control_center",
               "notifications",
+              "back",
+              "run_shortcut",
+              "enter",
+              "backspace",
+              "copy",
+              "cut",
               "paste",
-              "run_shortcut"
+              "select_all"
             ]
           },
           "text": {
@@ -6578,7 +6590,7 @@
               "object",
               "null"
             ],
-            "description": "What the run produced, when it succeeded. Shape depends on `kind`.",
+            "description": "What the run produced, when it succeeded. Shape depends on `kind`.\nA `get_ip` or `clipboard_get` command returns `{\"value\": \"...\"}`.",
             "additionalProperties": {}
           },
           "error": {
