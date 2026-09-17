@@ -25,7 +25,7 @@ export interface RunWaitParams {
 }
 
 /** The API sends `result: []` instead of `null` for commands with no result. */
-function normalizeResult(run: Run): Run {
+export function normalizeResult(run: Run): Run {
   return Array.isArray(run.result) ? { ...run, result: null } : run;
 }
 

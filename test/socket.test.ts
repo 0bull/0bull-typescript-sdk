@@ -1,4 +1,5 @@
 import { once } from "node:events";
+import { type AddressInfo, createServer } from "node:net";
 import { afterEach, describe, expect, it } from "vitest";
 import { type WebSocket, WebSocketServer } from "ws";
 import type { Data, Operation } from "../src/core.js";
@@ -333,9 +334,42 @@ describe("Socket", () => {
     clients.push(server);
     const url = await server.start();
     const { socket } = await makeSocket(url);
-    await socket.connect();
-    await socket[Symbol.asyncDispose]();
+    {
+      await using disposable = socket;
+      await disposable.connect();
+    }
     await expect(socket.call("/closed")).rejects.toBeInstanceOf(SocketClosedError);
+  });
+
+  it("aborts a pending connection immediately on close", async () => {
+    // Accepts TCP but never completes the WebSocket handshake.
+    const stall = createServer(() => {});
+    stall.listen(0);
+    await once(stall, "listening");
+    const { port } = stall.address() as AddressInfo;
+    const { socket } = await makeSocket(`ws://127.0.0.1:${port}`, { callTimeout: 10_000 });
+    const connecting = socket.connect();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const started = performance.now();
+    socket.close();
+    await expect(connecting).rejects.toBeInstanceOf(SocketClosedError);
+    expect(performance.now() - started).toBeLessThan(1_000);
+    stall.close();
+  });
+
+  it("normalizes an empty run result in push events", async () => {
+    const server = new SocketServer((socket, frame) => {
+      socket.send(JSON.stringify({ event: "run", data: { ...run, result: [] } }));
+      socket.send(JSON.stringify({ msgid: frame.msgid, status: 204, data: null }));
+    });
+    clients.push(server);
+    const { socket } = await makeSocket(await server.start());
+    await socket.connect();
+    await socket.call("/events");
+    for await (const event of socket.events({ timeout: 20 })) {
+      expect(event).toEqual({ type: "run", run: { ...run, result: null } });
+    }
+    socket.close();
   });
 
   it("rejects non-integer reply statuses as connection errors", async () => {

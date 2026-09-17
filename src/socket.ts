@@ -10,7 +10,7 @@ import type { HttpTransport } from "./http.js";
 import { Accounts } from "./resources/accounts.js";
 import { Billing } from "./resources/billing.js";
 import { Phones } from "./resources/phones.js";
-import { Runs } from "./resources/runs.js";
+import { normalizeResult, Runs } from "./resources/runs.js";
 import { SessionResource } from "./resources/session.js";
 import { Submissions } from "./resources/submissions.js";
 import { Uploads } from "./resources/uploads.js";
@@ -56,7 +56,7 @@ function parseEvent(frame: Frame): Event | undefined {
   switch (frame.event) {
     case "run":
       if (hasFields(data, ["id", "slot", "kind", "status"])) {
-        return { type: "run", run: data as unknown as Run };
+        return { type: "run", run: normalizeResult(data as unknown as Run) };
       }
       return;
     case "submission":
@@ -88,6 +88,8 @@ export class SocketTransport implements Transport {
   #socket: WebSocket | undefined;
   #session: Awaited<ReturnType<SessionResource["create"]>> | undefined;
   #connectPromise: Promise<void> | undefined;
+  /** Cancels an in-progress connection attempt or reconnect backoff, so close() is immediate. */
+  #abort: (() => void) | undefined;
   #counter = 0;
   #everConnected = false;
   #reconnecting = false;
@@ -127,6 +129,7 @@ export class SocketTransport implements Transport {
     this.#disconnect();
     this.#rejectWaiters(new SocketClosedError("Socket is closed"));
     this.#enqueue(END);
+    this.#abort?.();
     try {
       socket?.close();
     } catch {
@@ -193,12 +196,9 @@ export class SocketTransport implements Transport {
     }
   }
 
-  [Symbol.asyncDispose](): void {
-    this.close();
-  }
-
   async #openConnection(): Promise<void> {
     const session = await new SessionResource(this.#http, this.#http).create();
+    if (this.#closed) throw new SocketClosedError("Socket is closed");
     await new Promise<void>((resolve, reject) => {
       let socket: WebSocket;
       let opened = false;
@@ -207,6 +207,7 @@ export class SocketTransport implements Transport {
       const fail = (error: Error) => {
         if (settled) return;
         settled = true;
+        this.#abort = undefined;
         if (timer) clearTimeout(timer);
         reject(error);
       };
@@ -228,6 +229,15 @@ export class SocketTransport implements Transport {
         if (!opened) fail(new APIConnectionError("Socket connection failed"));
       });
       socket.addEventListener("close", onClose);
+      this.#abort = () => {
+        // Reject first: closing a connecting socket fires its error listener synchronously.
+        fail(new SocketClosedError("Socket is closed"));
+        try {
+          socket.close();
+        } catch {
+          // A socket still connecting may refuse close; the caller already has its rejection.
+        }
+      };
       socket.addEventListener("open", () => {
         if (this.#closed) {
           try {
@@ -240,6 +250,7 @@ export class SocketTransport implements Transport {
         }
         opened = true;
         settled = true;
+        this.#abort = undefined;
         if (timer) clearTimeout(timer);
         this.#socket = socket;
         this.#session = session;
@@ -299,7 +310,14 @@ export class SocketTransport implements Transport {
 
   async #reconnect(): Promise<void> {
     for (let attempt = 0; attempt < this.#maxReconnectAttempts; attempt++) {
-      await new Promise((resolve) => setTimeout(resolve, Math.min(500 * 2 ** attempt, 10_000)));
+      await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, Math.min(500 * 2 ** attempt, 10_000));
+        this.#abort = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+      });
+      this.#abort = undefined;
       if (this.#closed) return;
       try {
         await this.#openConnection();
@@ -461,7 +479,7 @@ export class Socket {
     });
   }
 
-  [Symbol.asyncDispose](): void {
+  async [Symbol.asyncDispose](): Promise<void> {
     this.close();
   }
 }
