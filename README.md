@@ -184,6 +184,9 @@ for await (const event of socket.events()) {
 }
 ```
 
+`await using` needs TypeScript 5.2+ or Node 24+. In plain JavaScript on Node 22, call
+`socket.close()` in a `finally` block instead.
+
 `events()` yields a discriminated union on `type`: `{ type: "run", run }`,
 `{ type: "submission", submission }`, `{ type: "billing_request", request }`.
 
