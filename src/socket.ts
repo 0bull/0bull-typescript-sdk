@@ -16,6 +16,14 @@ import { Submissions } from "./resources/submissions.js";
 import { Uploads } from "./resources/uploads.js";
 import type { BillingRequest, Event, Run, Submission } from "./types.js";
 
+// Declared so the published types compile without `lib: "esnext"`; a consumer only needs that
+// lib to use `await using` itself.
+declare global {
+  interface SymbolConstructor {
+    readonly asyncDispose: unique symbol;
+  }
+}
+
 export interface SocketOptions {
   /** Milliseconds to wait for a call's reply, including any reconnect wait. Default 60000. */
   callTimeout?: number;

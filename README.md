@@ -184,7 +184,7 @@ for await (const event of socket.events()) {
 }
 ```
 
-`await using` needs TypeScript 5.2+ or Node 24+. In plain JavaScript on Node 22, call
+`await using` needs TypeScript 5.2+ with `lib: "esnext"`, or Node 24+. In plain JavaScript on Node 22, call
 `socket.close()` in a `finally` block instead.
 
 `events()` yields a discriminated union on `type`: `{ type: "run", run }`,
