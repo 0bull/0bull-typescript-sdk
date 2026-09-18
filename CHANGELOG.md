@@ -7,6 +7,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-18
+
 ### Changed
 
 - Sessions: `SessionPhone.id` is now `SessionPhone.slot`, matching `Phone.slot` and the socket. The
@@ -43,5 +45,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Runnable examples in `examples/`.
 - Node ≥ 22, ESM only, zero runtime dependencies, written in strict TypeScript with bundled types.
 
-[Unreleased]: https://github.com/0bull/0bull-typescript-sdk/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/0bull/0bull-typescript-sdk/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/0bull/0bull-typescript-sdk/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/0bull/0bull-typescript-sdk/releases/tag/v0.1.0

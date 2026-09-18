@@ -1,6 +1,6 @@
 {
   "name": "@0bull/sdk",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Typed TypeScript client for the 0bull API",
   "license": "MIT",
   "author": "0bull",
