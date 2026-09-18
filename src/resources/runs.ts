@@ -1,12 +1,4 @@
-import {
-  asObject,
-  invalid,
-  type PageData,
-  parsePage,
-  pathSegment,
-  unwrap,
-  waitUntil,
-} from "../core.js";
+import { asObject, invalid, parsePage, pathSegment, unwrap, waitUntil } from "../core.js";
 import { Page } from "../pagination.js";
 import type { Run } from "../types.js";
 import { TERMINAL_RUN_STATUSES } from "../types.js";
@@ -24,20 +16,10 @@ export interface RunWaitParams {
   interval?: number;
 }
 
-/** The API sends `result: []` instead of `null` for commands with no result. */
-export function normalizeResult(run: Run): Run {
-  return Array.isArray(run.result) ? { ...run, result: null } : run;
-}
-
-function normalizePage(page: PageData<Run>): PageData<Run> {
-  return { ...page, items: page.items.map(normalizeResult) };
-}
-
 /** Parses a single Run, unwrapped on REST, raw on the socket. */
 export const parseRun = {
-  parseRest: (response: Parameters<typeof unwrap>[0]) =>
-    normalizeResult(asObject<Run>(unwrap(response))),
-  parseSocket: (data: unknown) => normalizeResult(asObject<Run>(data)),
+  parseRest: (response: Parameters<typeof unwrap>[0]) => asObject<Run>(unwrap(response)),
+  parseSocket: (data: unknown) => asObject<Run>(data),
 };
 
 export class Runs extends Resource {
@@ -51,8 +33,8 @@ export class Runs extends Resource {
         query: { page: params.page },
       },
       socket: { fun: "/app/phones/runs", data: { slot, page: params.page } },
-      parseRest: (response) => normalizePage(parsePage<Run>(response.json())),
-      parseSocket: (body) => normalizePage(parsePage<Run>(body)),
+      parseRest: (response) => parsePage<Run>(response.json()),
+      parseSocket: (body) => parsePage<Run>(body),
     });
     return new Page(page, (next) => this.list(slot, { ...params, page: next }));
   }

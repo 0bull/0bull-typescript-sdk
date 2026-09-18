@@ -46,18 +46,6 @@ describe("runs over REST", () => {
     expect(await api.last().text()).toBe("");
   });
 
-  it("normalizes an empty result list to null on get and list", async () => {
-    const api = mockApi();
-    api.add("GET", "/v1/phones/phone-1/runs/run-1", { json: { data: { ...run, result: [] } } });
-    expect((await api.client.runs.get("phone-1", "run-1")).result).toBeNull();
-
-    api.add("GET", "/v1/phones/phone-1/runs", {
-      json: { data: [{ ...run, result: [] }], meta: { ...meta, last_page: 1 } },
-    });
-    const page = await api.client.runs.list("phone-1");
-    expect(page.items[0]?.result).toBeNull();
-  });
-
   it("rejects page below 1 before sending", async () => {
     const { client, requests } = mockApi();
     await expect(client.runs.list("phone-1", { page: 0 })).rejects.toThrow(
@@ -104,13 +92,10 @@ describe("runs over the socket", () => {
     expect(calls).toEqual([{ fun: "/app/phones/runs", data: { slot: "phone-1", page: 2 } }]);
   });
 
-  it("parses socket pages and normalizes results", async () => {
-    const { runs } = socketRuns({
-      data: [{ ...run, result: [] }],
-      meta: { ...meta, last_page: 1 },
-    });
+  it("parses socket pages", async () => {
+    const { runs } = socketRuns({ data: [run], meta: { ...meta, last_page: 1 } });
     const page = await runs.list("phone-1");
-    expect(page.items[0]?.result).toBeNull();
+    expect(page.items[0]).toEqual(run);
     expect(page.hasNextPage()).toBe(false);
   });
 });

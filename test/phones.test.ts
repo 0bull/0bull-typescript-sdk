@@ -152,13 +152,6 @@ describe("phones over REST", () => {
     }
   });
 
-  it("normalizes an empty result list to null", async () => {
-    const api = mockApi();
-    api.add("POST", "/v1/phones/phone-1/commands", { json: { data: { ...run, result: [] } } });
-    const result = await api.client.phones.runCommand("phone-1", "get_ip");
-    expect(result.result).toBeNull();
-  });
-
   it("validates run_command before sending", () => {
     const { client, requests } = mockApi();
     expect(() => client.phones.runCommand("phone-1", "unknown" as never)).toThrow(
@@ -281,11 +274,5 @@ describe("phones over the socket", () => {
 
     const { phones: ocrPhones } = socketPhones({ text: "hello" });
     expect(await ocrPhones.ocr("phone-1")).toBe("hello");
-  });
-
-  it("normalizes an empty result list to null", async () => {
-    const { phones } = socketPhones({ ...run, result: [] });
-    const result = await phones.runCommand("phone-1", "get_ip");
-    expect(result.result).toBeNull();
   });
 });

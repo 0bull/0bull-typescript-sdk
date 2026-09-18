@@ -522,7 +522,7 @@ const billingRequestKeys = {
   resolved_at: true,
 } satisfies Record<keyof BillingRequest, true>;
 const sessionPhoneKeys = {
-  id: true,
+  slot: true,
   name: true,
   video_live: true,
   input_present: true,
