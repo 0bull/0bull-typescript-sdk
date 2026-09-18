@@ -57,3 +57,26 @@ Build:      npm run build
   without a stated reason.
 - Specs and plans (`SPEC.md`, `tasks/`) are local working files and are git-ignored.
 - Conventional Commits: `<type>(<scope>): <description>`, lowercase imperative, ≤ 72 chars.
+
+## Releasing
+
+The package publishes through [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/):
+`.github/workflows/release.yml` gets a short-lived OIDC credential from GitHub on each run, so no
+npm token exists anywhere. Never add one: a granular token expires every 90 days and, until it
+does, can publish this package from anywhere.
+
+A trusted publisher can only be configured on a package that already exists, so `0.1.0` is
+published by hand, once:
+
+1. `npm login`, then `npm publish` (enter the 2FA code). `prepublishOnly` builds `dist/`.
+2. On npmjs.com → the package → Settings → Trusted publishers, add this repository, workflow
+   `release.yml`, environment `npm`.
+
+Every later release:
+
+1. Bump `version` in `package.json` and add the version's section to `CHANGELOG.md`.
+2. Land that on `main` with lint, typecheck, and tests green.
+3. Publish a GitHub release tagged `v<version>`. The workflow checks the tag against
+   `package.json`, runs the suite, and publishes with provenance.
+
+Provenance needs the repository and the package to be public.
