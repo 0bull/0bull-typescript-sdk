@@ -9,14 +9,14 @@ and [docs.0bull.net](https://docs.0bull.net) for the full API reference.
 ## Install
 
 ```bash
-npm install 0bull
+npm install @0bull/sdk
 ```
 
-The package is published as `0bull`, ESM only, and requires Node 22+. It has zero runtime
+The package is published as `@0bull/sdk`, ESM only, and requires Node 22+. It has zero runtime
 dependencies (it uses the global `fetch`, `FormData`, `Blob`, and `WebSocket`).
 
 ```ts
-import { ZeroBull } from "0bull";
+import { ZeroBull } from "@0bull/sdk";
 ```
 
 Methods are camelCase (`runMacro`); fields sent to or returned by the API keep the API's
@@ -39,7 +39,7 @@ to the abilities your code needs:
 Pass the token explicitly or set `ZEROBULL_API_TOKEN`:
 
 ```ts
-import { ZeroBull } from "0bull";
+import { ZeroBull } from "@0bull/sdk";
 
 const client = new ZeroBull({ apiToken: "..." });
 // or, with ZEROBULL_API_TOKEN set in the environment:
@@ -54,7 +54,7 @@ The SDK is async-only. `ZeroBull` is the REST client; `client.socket()` returns 
 WebSocket (see [The socket and events](#the-socket-and-events)).
 
 ```ts
-import { ZeroBull } from "0bull";
+import { ZeroBull } from "@0bull/sdk";
 
 const client = new ZeroBull();
 
@@ -170,7 +170,7 @@ client (except `user` and `session`, which are REST-only), over a connection tha
 automatically:
 
 ```ts
-import { TERMINAL_RUN_STATUSES, ZeroBull } from "0bull";
+import { TERMINAL_RUN_STATUSES, ZeroBull } from "@0bull/sdk";
 
 const client = new ZeroBull();
 await using socket = client.socket(); // closed when the scope exits
@@ -225,7 +225,7 @@ All exceptions the SDK throws on purpose subclass `ZeroBullError`.
 | `wait()` timeout | `WaitTimeoutError` |
 
 ```ts
-import { APIStatusError, ValidationError } from "0bull";
+import { APIStatusError, ValidationError } from "@0bull/sdk";
 
 try {
   await client.submissions.create({

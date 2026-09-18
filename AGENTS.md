@@ -1,6 +1,6 @@
 # 0bull TypeScript SDK
 
-TypeScript client for the 0bull API, published to npm as `0bull`.
+TypeScript client for the 0bull API, published to npm as `@0bull/sdk`.
 
 - Product: https://0bull.net
 - API docs (the contract): https://docs.0bull.net

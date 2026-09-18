@@ -1,5 +1,5 @@
 {
-  "name": "0bull",
+  "name": "@0bull/sdk",
   "version": "0.1.0",
   "description": "Typed TypeScript client for the 0bull API",
   "license": "MIT",
@@ -47,5 +47,8 @@
     "typescript": "^5.9.3",
     "vitest": "^5.0.1",
     "ws": "^8.21.3"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
