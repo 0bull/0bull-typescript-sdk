@@ -190,7 +190,7 @@ export interface BillingRequest {
 }
 
 export interface SessionPhone {
-  id: string;
+  slot: string;
   name: string;
   video_live: boolean;
   input_present: boolean;

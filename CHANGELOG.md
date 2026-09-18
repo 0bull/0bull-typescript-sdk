@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Sessions: `SessionPhone.id` is now `SessionPhone.slot`, matching `Phone.slot` and the socket. The
+  API renamed the field.
+
+### Removed
+
+- Runs: the workaround that read `result: []` as `null`. The API always sends `null` now.
+
 ## [0.1.0] - 2026-09-17
 
 ### Added
@@ -32,4 +43,5 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Runnable examples in `examples/`.
 - Node ≥ 22, ESM only, zero runtime dependencies, written in strict TypeScript with bundled types.
 
+[Unreleased]: https://github.com/0bull/0bull-typescript-sdk/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/0bull/0bull-typescript-sdk/releases/tag/v0.1.0

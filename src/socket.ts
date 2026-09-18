@@ -10,7 +10,7 @@ import type { HttpTransport } from "./http.js";
 import { Accounts } from "./resources/accounts.js";
 import { Billing } from "./resources/billing.js";
 import { Phones } from "./resources/phones.js";
-import { normalizeResult, Runs } from "./resources/runs.js";
+import { Runs } from "./resources/runs.js";
 import { SessionResource } from "./resources/session.js";
 import { Submissions } from "./resources/submissions.js";
 import { Uploads } from "./resources/uploads.js";
@@ -64,7 +64,7 @@ function parseEvent(frame: Frame): Event | undefined {
   switch (frame.event) {
     case "run":
       if (hasFields(data, ["id", "slot", "kind", "status"])) {
-        return { type: "run", run: normalizeResult(data as unknown as Run) };
+        return { type: "run", run: data as unknown as Run };
       }
       return;
     case "submission":

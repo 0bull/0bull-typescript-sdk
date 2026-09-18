@@ -357,21 +357,6 @@ describe("Socket", () => {
     stall.close();
   });
 
-  it("normalizes an empty run result in push events", async () => {
-    const server = new SocketServer((socket, frame) => {
-      socket.send(JSON.stringify({ event: "run", data: { ...run, result: [] } }));
-      socket.send(JSON.stringify({ msgid: frame.msgid, status: 204, data: null }));
-    });
-    clients.push(server);
-    const { socket } = await makeSocket(await server.start());
-    await socket.connect();
-    await socket.call("/events");
-    for await (const event of socket.events({ timeout: 20 })) {
-      expect(event).toEqual({ type: "run", run: { ...run, result: null } });
-    }
-    socket.close();
-  });
-
   it("rejects non-integer reply statuses as connection errors", async () => {
     const server = new SocketServer((socket, frame) => {
       socket.send(JSON.stringify({ msgid: frame.msgid, status: 200.5, data: null }));

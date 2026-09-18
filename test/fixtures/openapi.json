@@ -4440,7 +4440,7 @@
                       "items": {
                         "type": "object",
                         "properties": {
-                          "id": {
+                          "slot": {
                             "type": "string"
                           },
                           "name": {
@@ -4469,7 +4469,7 @@
                           }
                         },
                         "required": [
-                          "id",
+                          "slot",
                           "name",
                           "video_live",
                           "input_present",
@@ -4482,45 +4482,6 @@
                     "socket_url": {
                       "type": "string"
                     },
-                    "ice_servers": {
-                      "anyOf": [
-                        {
-                          "type": "array",
-                          "prefixItems": [
-                            {
-                              "type": "object",
-                              "properties": {
-                                "urls": {
-                                  "type": "array",
-                                  "items": {}
-                                },
-                                "username": {
-                                  "type": "string"
-                                },
-                                "credential": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "urls",
-                                "username",
-                                "credential"
-                              ]
-                            }
-                          ],
-                          "minItems": 1,
-                          "maxItems": 1,
-                          "additionalItems": false
-                        },
-                        {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "additionalProperties": {}
-                          }
-                        }
-                      ]
-                    },
                     "farm_online": {
                       "type": "boolean"
                     }
@@ -4528,7 +4489,6 @@
                   "required": [
                     "phones",
                     "socket_url",
-                    "ice_servers",
                     "farm_online"
                   ]
                 }
